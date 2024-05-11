@@ -92,6 +92,17 @@ impl FromStr for Round {
     }
 }
 
+fn part_1(path: &str) -> u16 {
+    let content = fs::read_to_string(path).expect("Should be able to read the file.");
+
+    content
+        .trim()
+        .split(&['\r', '\n'][..])
+        .map(|line| Game::from_str(line).unwrap())
+        .filter(Game::is_valid)
+        .fold(0, |acc, game| acc + game.index)
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -100,14 +111,17 @@ fn main() {
         exit(1);
     }
 
-    let content = fs::read_to_string(&args[1]).expect("Should be able to read the file.");
+    part_1(&args[1]);
+}
 
-    let result = content
-        .trim()
-        .split(&['\r', '\n'][..])
-        .map(|line| Game::from_str(line).unwrap())
-        .filter(Game::is_valid)
-        .fold(0, |acc, game| acc + game.index);
+#[cfg(test)]
+mod tests {
 
-    println!("{}", result);
+    #[test]
+    fn part_1() {
+        let result = super::part_1("data.txt");
+
+        println!("Part 1 result: {}", result);
+        assert_eq!(result, 2101)
+    }
 }
