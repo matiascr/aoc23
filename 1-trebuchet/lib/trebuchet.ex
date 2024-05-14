@@ -5,8 +5,9 @@ defmodule Trebuchet do
   [Advent of Code 2023 - Day 1](https://adventofcode.com/2023/day/1)
   """
 
-  @number_digits ~w(1 2 3 4 5 6 7 8 9 0)
+  @number_digits ~w(one1one two2two three3three four4four five5five six6six seven7seven eight8eight nine9nine)
   @number_strings ~w(one two three four five six seven eight nine)
+  @mapping Enum.zip(@number_strings, @number_digits)
 
   @spec solve(binary(), keyword()) :: non_neg_integer()
   def solve(path, opts \\ []) when is_list(opts) do
@@ -25,58 +26,15 @@ defmodule Trebuchet do
 
   @spec parse_calibration_values(binary(), pos_integer()) :: [non_neg_integer()]
   def parse_calibration_values(line, 1) do
-    for n <- String.graphemes(line), into: [] do
-      if Enum.member?(@number_digits, n) do
-        Enum.find_index(@number_digits, &(&1 == n))
-        |> then(&Enum.at(@number_digits, &1))
-        |> String.to_integer()
-      end
-    end
-    |> Enum.filter(&(&1 != nil))
+    String.graphemes(line)
+    |> Enum.filter(&(Integer.parse(&1) != :error))
+    |> Enum.map(&String.to_integer/1)
   end
 
   def parse_calibration_values(line, 2) do
-    line
-    |> String.graphemes()
-    |> Enum.reduce([], fn grapheme, acc ->
-      prev_chars = if match?([_h | _t], acc), do: Enum.at(acc, 0), else: ""
-
-      cond do
-        Enum.member?(@number_digits, grapheme) ->
-          [String.to_integer(grapheme) | acc]
-
-        is_integer(prev_chars) ->
-          [grapheme | acc]
-
-        has_integer_string(prev_chars <> grapheme) ->
-          [integer_in_string(prev_chars <> grapheme) | Enum.slice(acc, 1..-1//1)]
-
-        true ->
-          [prev_chars <> grapheme | Enum.slice(acc, 1..-1//1)]
-      end
+    Enum.reduce(@mapping, line, fn {str, int}, acc ->
+      String.replace(acc, str, int)
     end)
-    |> Enum.filter(&is_integer/1)
-    |> Enum.reverse()
-  end
-
-  @spec has_integer_string(binary()) :: boolean()
-  def has_integer_string(str) when is_binary(str) do
-    Enum.find(@number_strings, fn ns ->
-      match?({_start, _length}, :binary.match(str, ns))
-    end) != nil
-  end
-
-  @spec integer_in_string(binary()) :: [non_neg_integer()]
-  def integer_in_string(str) when is_binary(str) do
-    @number_strings
-    |> Enum.with_index()
-    |> Enum.map(fn {ns, i} ->
-      case :binary.match(str, ns) do
-        {_start, _length} -> i + 1
-        _ -> nil
-      end
-    end)
-    |> Enum.filter(&(&1 != nil))
-    |> Enum.at(0)
+    |> parse_calibration_values(1)
   end
 end

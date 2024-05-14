@@ -17,6 +17,6 @@ defmodule TrebuchetTest do
 
     IO.puts("\nPart 2: " <> Integer.to_string(res))
 
-    assert res == 53885
+    assert res == 53868
   end
 end
