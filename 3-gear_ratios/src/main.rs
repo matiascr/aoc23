@@ -45,10 +45,9 @@ impl Schematic {
 
         for i in 0..n_lines {
             let line = self.lines[i].clone();
+            let char_vec = line.chars().collect::<Vec<char>>();
             for j in 0..lines_len {
-                let char_vec = line.chars().collect::<Vec<char>>();
-                let current_char = char_vec[j];
-                if current_char.is_numeric() {
+                if char_vec[j].is_numeric() {
                     match j {
                         // is first
                         0 => current.push(j),
@@ -61,7 +60,7 @@ impl Schematic {
                         }
                         // is is last or first digit in sequence
                         j if !current.contains(&(j - 1)) || !char_vec[j + 1].is_numeric() => {
-                            current.push(j)
+                            current.push(j);
                         }
                         _ => {}
                     }
@@ -69,15 +68,22 @@ impl Schematic {
             }
 
             if !current.is_empty() {
-                let starts: Vec<&usize> = current.iter().step_by(2).collect::<Vec<&usize>>();
-                let ends: Vec<&usize> = current[1..].iter().step_by(2).collect::<Vec<&usize>>();
+                let (line_indices, _) =
+                    current
+                        .iter()
+                        .fold((Vec::new(), None), |(mut lis, n), c| match n {
+                            None => (lis, Some(c)),
+                            Some(n_) => {
+                                lis.push((*n_, *c));
+                                (lis, None)
+                            }
+                        });
 
-                let line_indices = starts.iter().zip(ends).collect::<Vec<(&&usize, &usize)>>();
-
-                for (&&s, &e) in line_indices {
-                    let line_range =
-                        (cmp::max(s as isize - 1, 0) as usize)..=cmp::min(e + 1, lines_len - 1);
-                    let current_line_number: String =
+                for (s, e) in line_indices {
+                    let range_start = cmp::max(s as isize - 1, 0) as usize;
+                    let range_end = cmp::min(e + 1, lines_len - 1);
+                    let line_range = range_start..=range_end;
+                    let current_line_number =
                         self.lines[i].as_str()[line_range.clone()].to_string();
                     match i {
                         0 => numbers.push(Number::new(
@@ -85,7 +91,7 @@ impl Schematic {
                             current_line_number,
                             Some((self.lines[i + 1].as_str())[line_range.clone()].to_string()),
                         )),
-                        ii if ii == n_lines - 1 => numbers.push(Number::new(
+                        i if i == n_lines - 1 => numbers.push(Number::new(
                             Some((self.lines[i - 1].as_str())[line_range.clone()].to_string()),
                             current_line_number,
                             None,
@@ -98,7 +104,6 @@ impl Schematic {
                         )),
                     }
                 }
-                // number_indices.push((i, current));
                 current = Vec::new();
             }
         }
@@ -124,18 +129,10 @@ impl Number {
 
     /// Returns if this [`Number`] is part number.
     fn part_number(&self) -> Option<u32> {
-        // has if there is no punctuation
-        let prev_has = matches!(&self.prev_line, Some(s) if !s.replace('.', "").is_empty());
-        let next_has = matches!(&self.next_line, Some(s) if !s.replace('.', "").is_empty());
-
-        let line_has = !&self
-            .line
-            .chars()
-            .filter(|c| !c.is_ascii_digit() && *c != '.')
-            .collect::<String>()
-            .is_empty();
-
-        if !prev_has && !line_has && !next_has {
+        if !has_punctuation(self.prev_line.clone())
+            && !has_punctuation(self.next_line.clone())
+            && !has_punctuation(Some(self.line.clone()))
+        {
             return None;
         }
 
@@ -143,6 +140,12 @@ impl Number {
     }
 }
 
+/// Determines if a given [`String`] any symbols other than periods (".").
+fn has_punctuation(line: Option<String>) -> bool {
+    matches!(line, Some(s) if !s.replace('.', "").replace(char::is_numeric, "").is_empty())
+}
+
+/// Runs the part 1 implementation.
 fn part1(schematic_string: String) -> u32 {
     Schematic::new(schematic_string)
         .to_numbers()
