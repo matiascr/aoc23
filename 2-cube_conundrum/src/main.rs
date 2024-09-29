@@ -27,7 +27,7 @@ impl Game {
             .fold(true, |acc, round| acc && round.is_valid())
     }
 
-    fn get_max(&self) -> Round {
+    fn get_max(self) -> Round {
         self.rounds
             .iter()
             .fold(Round::new(), |acc, round| round.get_min_required(acc))
@@ -133,8 +133,8 @@ fn part_2(path: &str) -> u16 {
         .trim()
         .split(&['\r', '\n'][..])
         .map(|line| Game::from_str(line).unwrap())
-        .map(|game| Game::get_max(&game))
-        .fold(0, |acc, round| acc + Round::power(&round))
+        .map(Game::get_max)
+        .fold(0, |acc, round| acc + round.power())
 }
 
 fn main() {
@@ -146,6 +146,7 @@ fn main() {
     }
 
     part_1(&args[1]);
+    part_2(&args[1]);
 }
 
 #[cfg(test)]
