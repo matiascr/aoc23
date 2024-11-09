@@ -8,3 +8,4 @@ My Solutions to Advent of Code 2023 Challenges
 - [Day 4 - Scratchcards](./4-scratchcards/)
 - [Day 5 - Seeds](./5-seeds/)
 - [Day 6 - Wait for It](./6-wait-for-it/)
+- [Day 7 - Camel Cards](./7-camel_cards-gleam/)
