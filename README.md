@@ -10,3 +10,4 @@ My Solutions to Advent of Code 2023 Challenges
 - [Day 6 - Wait for It](./6-wait-for-it/)
 - [Day 7 - Camel Cards](./7-camel_cards-gleam/)
 - [Day 8 - Haunted Wasteland](./8-haunted_wasteland/)
+- [Day 9 - Mirage Maintenance](./9-mirage_maintenance/)
